@@ -1,0 +1,8 @@
+{
+  "name": "billy-quotes",
+  "version": "0.1.0",
+  "description": "Create, revise, send and follow up on price quotes for goods and services with Billy Quotes.",
+  "author": { "name": "QuoteGoat" },
+  "homepage": "https://github.com/quotegoat-ux/billy-quotes",
+  "keywords": ["quotes", "estimates", "pricing", "invoices"]
+}

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "billy-quotes": {
+      "type": "http",
+      "url": "https://billy-quotes-mcp-stage.quote-goat.workers.dev/mcp"
+    }
+  }
+}

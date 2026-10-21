@@ -1,0 +1,11 @@
+# Copy to .dev.vars for `wrangler dev`. Set real values with `wrangler secret put NAME` in production.
+
+# Local only: a Bearer token that maps to a fixed dev user and skips AuthKit.
+# Never set this in production.
+DEV_AUTH_TOKEN=dev-token-change-me
+
+# Stripe secret key (sk_test_... or sk_live_...). Without it, /pay shows "payments not set up".
+STRIPE_SECRET_KEY=
+
+# Signing secret of the Stripe webhook endpoint pointing at /stripe/webhook (whsec_...).
+STRIPE_WEBHOOK_SECRET=
