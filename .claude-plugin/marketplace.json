@@ -1,0 +1,11 @@
+{
+  "name": "billy-quotes",
+  "owner": { "name": "QuoteGoat" },
+  "plugins": [
+    {
+      "name": "billy-quotes",
+      "source": "./plugins/claude",
+      "description": "Quoting for goods and services: create, revise, send and chase quotes."
+    }
+  ]
+}
