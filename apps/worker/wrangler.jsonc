@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "billy-quotes",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "billy-quotes",
+      // Replace with the id from `wrangler d1 create billy-quotes` before deploying.
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    "PUBLIC_BASE_URL": "http://localhost:8787",
+    "AUTHKIT_DOMAIN": "your-app.authkit.app",
+    // Optional dedicated sandbox origins for the card; leave empty to use each host's default.
+    "OPENAI_WIDGET_DOMAIN": "",
+    "MCP_UI_DOMAIN": ""
+  },
+  "observability": { "enabled": true }
+}

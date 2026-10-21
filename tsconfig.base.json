@@ -17,6 +17,8 @@
     "noEmit": true,
     "resolveJsonModule": true,
     "types": [],
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   }
 }
