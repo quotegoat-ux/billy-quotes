@@ -56,6 +56,7 @@
       case "ui/request-display-mode":
         hostContext.displayMode = m.params.mode;
         document.body.classList.toggle("fullscreen", m.params.mode === "fullscreen");
+        if (m.params.mode === "fullscreen") frame.style.height = "";
         reply({ mode: m.params.mode });
         post({ method: "ui/notifications/host-context-changed", params: { displayMode: m.params.mode } });
         break;
