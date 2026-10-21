@@ -5,11 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev --local",
-    "deploy": "wrangler deploy",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "typecheck": "tsc -p tsconfig.json && tsc -p scripts/tsconfig.json",
     "test": "vitest run",
-    "smoke": "tsx scripts/smoke.ts"
+    "smoke": "tsx scripts/smoke.ts",
+    "deploy:stage": "wrangler deploy --env stage",
+    "deploy:production": "wrangler deploy --env production",
+    "db:migrate:stage": "wrangler d1 migrations apply billy-quotes-db-stage --remote --env stage",
+    "db:migrate:production": "wrangler d1 migrations apply billy-quotes-db --remote --env production"
   },
   "dependencies": {
     "@billy/core": "workspace:*",

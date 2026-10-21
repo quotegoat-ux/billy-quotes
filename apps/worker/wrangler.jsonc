@@ -1,24 +1,65 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "billy-quotes",
+  // Top level is local development. Deploy with `--env stage` or `--env production`.
+  "name": "billy-quotes-mcp-dev",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "billy-quotes",
-      // Replace with the id from `wrangler d1 create billy-quotes` before deploying.
+      "database_name": "billy-quotes-db-dev",
       "database_id": "00000000-0000-0000-0000-000000000000",
       "migrations_dir": "migrations"
     }
   ],
   "vars": {
     "PUBLIC_BASE_URL": "http://localhost:8787",
-    "AUTHKIT_DOMAIN": "your-app.authkit.app",
+    "AUTHKIT_DOMAIN": "loyal-bear-08-staging.authkit.app",
     // Optional dedicated sandbox origins for the card; leave empty to use each host's default.
     "OPENAI_WIDGET_DOMAIN": "",
     "MCP_UI_DOMAIN": ""
   },
-  "observability": { "enabled": true }
+  "env": {
+    "stage": {
+      "name": "billy-quotes-mcp-stage",
+      "workers_dev": true,
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "billy-quotes-db-stage",
+          // Replace with the id from `wrangler d1 create billy-quotes-db-stage`.
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "vars": {
+        "PUBLIC_BASE_URL": "https://billy-quotes-mcp-stage.quote-goat.workers.dev",
+        "AUTHKIT_DOMAIN": "loyal-bear-08-staging.authkit.app",
+        "OPENAI_WIDGET_DOMAIN": "",
+        "MCP_UI_DOMAIN": ""
+      }
+    },
+    "production": {
+      "name": "billy-quotes-mcp",
+      "workers_dev": true,
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "billy-quotes-db",
+          // Replace with the id from `wrangler d1 create billy-quotes-db`.
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "vars": {
+        "PUBLIC_BASE_URL": "https://billy-quotes-mcp.quote-goat.workers.dev",
+        // Replace with the Billy Quotes production AuthKit domain.
+        "AUTHKIT_DOMAIN": "",
+        "OPENAI_WIDGET_DOMAIN": "",
+        "MCP_UI_DOMAIN": ""
+      }
+    }
+  }
 }

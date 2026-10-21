@@ -11,8 +11,9 @@
     "typecheck": "pnpm build && pnpm -r typecheck",
     "test": "pnpm -r test",
     "dev": "pnpm build && pnpm --filter @billy/worker dev",
-    "deploy": "pnpm build && pnpm --filter @billy/worker deploy",
-    "db:migrate:local": "pnpm --filter @billy/worker db:migrate:local"
+    "db:migrate:local": "pnpm --filter @billy/worker db:migrate:local",
+    "deploy:stage": "pnpm build && pnpm --filter @billy/worker deploy:stage",
+    "deploy:production": "pnpm build && pnpm --filter @billy/worker deploy:production"
   },
   "devDependencies": {
     "@types/node": "22.20.5",
