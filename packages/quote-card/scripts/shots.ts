@@ -146,7 +146,11 @@ async function main(): Promise<void> {
     await page.setViewportSize({ width: 1024, height: 760 });
     shots.push(await shot(page, "fullscreen-editor-dark"));
 
+    const totalBefore = await card.locator("#preview .trow-total").textContent();
     await card.getByLabel("Line 3 quantity").fill("16");
+    const totalAfter = await card.locator("#preview .trow-total").textContent();
+    assert.notEqual(totalAfter, totalBefore, "totals update live, before Save");
+    assert.equal(toolCalls.filter((c) => c.name === "revise_quote").length, 0, "live totals make no tool call");
     await card.getByRole("button", { name: "Add line" }).click();
     await card.getByLabel("Line 8 description").fill("Sealer application");
     await card.getByLabel("Line 8 unit price in dollars").fill("95");
