@@ -1,5 +1,6 @@
+import { execFileSync } from "node:child_process";
 import { build } from "esbuild";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 
 const here = (p) => new URL(p, import.meta.url);
 
@@ -22,19 +23,29 @@ const englishOnlyZodLocales = {
 };
 
 const result = await build({
-  entryPoints: [here("src/main.ts").pathname],
+  entryPoints: [here("src/main.tsx").pathname],
   bundle: true,
   format: "iife",
   platform: "browser",
   target: "es2022",
+  jsx: "automatic",
+  define: { "process.env.NODE_ENV": '"production"' },
   minify: true,
   write: false,
+  outdir: here("dist/bundle").pathname,
   legalComments: "none",
   plugins: [englishOnlyZodLocales],
 });
 
-const js = result.outputFiles[0].text.replaceAll("</script", "<\\/script");
-const css = await readFile(here("src/styles.css"), "utf8");
+const output = (ext) => result.outputFiles.find((f) => f.path.endsWith(ext))?.text ?? "";
+const js = output(".js").replaceAll("</script", "<\\/script");
+// Tailwind first: it declares the cascade layer order that the kit's CSS modules (in esbuild's output) slot into.
+const tailwind = execFileSync(here("node_modules/.bin/tailwindcss").pathname, ["-i", here("src/main.css").pathname, "--minify"], {
+  cwd: here(".").pathname,
+  encoding: "utf8",
+  stdio: ["ignore", "pipe", "inherit"],
+});
+const css = (tailwind + output(".css")).replaceAll("</style", "<\\/style");
 
 const html = `<!doctype html>
 <html lang="en">

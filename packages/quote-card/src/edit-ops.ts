@@ -3,8 +3,10 @@ import {
   computeTotals,
   dollarsToCents,
   isoDate,
+  lineAmount,
   normalizeUnit,
   reviseOpInput,
+  type Cents,
   type QuoteView,
   type ReviseOpInput,
   type Totals,
@@ -68,7 +70,7 @@ export function blankRow(): DraftRow {
 
 export type OpsResult = { ok: true; ops: ReviseOpInput[] } | { ok: false; errors: string[] };
 
-const parseNumber = (text: string): number => (text.trim() === "" ? Number.NaN : Number(text.replace(/[$,\s]/g, "")));
+export const parseNumber = (text: string): number => (text.trim() === "" ? Number.NaN : Number(text.replace(/[$,\s]/g, "")));
 
 /**
  * Turns the editor's form into revise_quote ops, changing only what the user
@@ -133,6 +135,13 @@ export function opsFromDraft(view: QuoteView, draft: EditDraft, now = new Date()
 
 function dollarsToCentsOrNull(dollars: number): number | null {
   return dollars >= 0 ? dollarsToCents(dollars) : null;
+}
+
+/** A line's amount as typed, or null while its quantity or price doesn't parse. */
+export function rowAmount(row: DraftRow): Cents | null {
+  const quantity = parseNumber(row.quantity);
+  const price = parseNumber(row.unitPrice);
+  return quantity > 0 && price >= 0 ? lineAmount({ quantity, unitPrice: dollarsToCents(price) }) : null;
 }
 
 /** Live preview while editing. Skips rows that don't parse yet; the server's totals replace this on save. */
