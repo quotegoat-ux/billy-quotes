@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body { margin: 0; font: 14px system-ui, sans-serif; background: var(--page); }
+  body[data-theme="light"] { --page: #f3f3f3; --composer: #ffffff; --composer-text: #6b6b6b; }
+  body[data-theme="dark"] { --page: #171717; --composer: #2f2f2f; --composer-text: #b4b4b4; }
+  #wrap { padding: 24px; }
+  #frame { display: block; width: 100%; max-width: 720px; border: 1px solid #8884; border-radius: 16px; height: 200px; }
+  body.fullscreen #wrap { padding: 0; }
+  body.fullscreen #frame { max-width: none; width: 100vw; height: 100vh; border: 0; border-radius: 0; }
+  #composer { display: none; position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); width: min(720px, calc(100vw - 32px));
+    height: 56px; border-radius: 28px; background: var(--composer); color: var(--composer-text); box-shadow: 0 4px 24px #0004;
+    align-items: center; padding: 0 20px; }
+  body.fullscreen #composer { display: flex; }
+</style>
+</head>
+<body>
+<div id="wrap"><iframe id="frame" src="card.html" title="Quote card"></iframe></div>
+<div id="composer">Ask anything</div>
+<script>
+  const frame = document.getElementById("frame");
+  const setup = window.__setup;
+  const hostContext = {
+    theme: setup.theme,
+    displayMode: "inline",
+    availableDisplayModes: ["inline", "fullscreen"],
+    locale: "en-US",
+    platform: "web",
+    safeAreaInsets: { top: 0, right: 0, bottom: 0, left: 0 },
+  };
+  document.body.dataset.theme = setup.theme;
+  window.__log = [];
+  const post = (msg) => frame.contentWindow.postMessage({ jsonrpc: "2.0", ...msg }, "*");
+  window.addEventListener("message", async (event) => {
+    const m = event.data;
+    if (!m || m.jsonrpc !== "2.0" || event.source !== frame.contentWindow) return;
+    window.__log.push(m);
+    const reply = (result) => post({ id: m.id, result });
+    switch (m.method) {
+      case "ui/initialize":
+        reply({
+          protocolVersion: m.params.protocolVersion,
+          hostInfo: { name: "fake-host", version: "1.0.0" },
+          hostCapabilities: { openLinks: {}, serverTools: {}, updateModelContext: { text: {} }, message: { text: {} } },
+          hostContext,
+        });
+        break;
+      case "ui/notifications/initialized":
+        post({ method: "ui/notifications/tool-result", params: setup.toolResult });
+        break;
+      case "ui/notifications/size-changed":
+        if (hostContext.displayMode === "inline") frame.style.height = `${m.params.height}px`;
+        break;
+      case "ui/request-display-mode":
+        hostContext.displayMode = m.params.mode;
+        document.body.classList.toggle("fullscreen", m.params.mode === "fullscreen");
+        reply({ mode: m.params.mode });
+        post({ method: "ui/notifications/host-context-changed", params: { displayMode: m.params.mode } });
+        break;
+      case "tools/call":
+        reply(await window.__callTool(m.params));
+        break;
+      case "ui/update-model-context":
+      case "ui/message":
+      case "ui/open-link":
+        reply({});
+        break;
+      default:
+        if (m.id !== undefined) post({ id: m.id, error: { code: -32601, message: `fake host: ${m.method}` } });
+    }
+  });
+</script>
+</body>
+</html>
