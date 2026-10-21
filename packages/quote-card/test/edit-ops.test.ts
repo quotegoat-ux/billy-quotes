@@ -1,6 +1,6 @@
 import { createQuote, createQuoteInput, revise, reviseQuoteInput, toNewQuote, toQuoteView, toReviseOp, type QuoteView } from "@billy/core";
 import { describe, expect, it } from "vitest";
-import { blankRow, draftFromView, opsFromDraft, previewTotals } from "../src/edit-ops.ts";
+import { blankRow, draftFromView, opsFromDraft, previewTotals, previewValidUntil, unitOptions } from "../src/edit-ops.ts";
 
 const NOW = new Date("2026-10-21T15:00:00Z");
 
@@ -22,7 +22,50 @@ function sampleView(): QuoteView {
 describe("editor ops", () => {
   it("emits nothing when nothing changed", () => {
     const view = sampleView();
-    expect(opsFromDraft(view, draftFromView(view))).toEqual({ ok: true, ops: [] });
+    expect(opsFromDraft(view, draftFromView(view, NOW), NOW)).toEqual({ ok: true, ops: [] });
+  });
+
+  it("turns quote settings into their revise ops, and the server applies them", () => {
+    const view = sampleView();
+    const draft = draftFromView(view, NOW);
+    expect(draft.validDays).toBe("30");
+    draft.taxPercent = "9.5";
+    draft.discountPercent = "5";
+    draft.validDays = "14";
+    draft.notes = "Weekend move, elevator booked.";
+
+    const result = opsFromDraft(view, draft, NOW);
+    expect(result).toEqual({
+      ok: true,
+      ops: [
+        { op: "set_notes", notes: "Weekend move, elevator booked." },
+        { op: "set_tax_percent", percent: 9.5 },
+        { op: "set_discount_percent", percent: 5 },
+        { op: "set_valid_days", days: 14 },
+      ],
+    });
+    if (!result.ok) return;
+    const parsed = reviseQuoteInput.parse({ quote: view.id, ops: result.ops }).ops.map(toReviseOp);
+    const quote = { ...view, ownerId: "u1", items: view.items.map(({ amount: _a, ...it }) => it) };
+    const applied = revise(quote, parsed, NOW);
+    expect(applied.ok && applied.value).toMatchObject({ taxPercent: 9.5, discountPercent: 5, validUntil: "2026-11-04" });
+    expect(previewValidUntil(view, draft, NOW)).toBe("2026-11-04");
+  });
+
+  it("rejects settings the server would refuse", () => {
+    const view = sampleView();
+    const draft = draftFromView(view, NOW);
+    draft.taxPercent = "120";
+    draft.validDays = "2.5";
+    const result = opsFromDraft(view, draft, NOW);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.errors.map((e) => e.split(":")[0])).toEqual(["Tax", "Valid for"]);
+  });
+
+  it("offers the standard units plus the line's own", () => {
+    expect(unitOptions("hr")).toEqual(["each", "hr", "day", "sq ft", "ft", "m", "kg", "lb", "guest"]);
+    expect(unitOptions("bag").at(-1)).toBe("bag");
   });
 
   it("emits only the changes, and the server applies them to the edited state", () => {
@@ -73,5 +116,8 @@ describe("editor ops", () => {
     expect(previewTotals(view, draft)).toMatchObject({ subtotal: 134000, tax: 10720, total: 144720 });
     draft.rows[2]!.unitPrice = "";
     expect(previewTotals(view, draft).subtotal).toBe(110000);
+    draft.taxPercent = "10";
+    draft.depositPercent = "50";
+    expect(previewTotals(view, draft)).toMatchObject({ tax: 11000, total: 121000, amountDue: 60500 });
   });
 });
